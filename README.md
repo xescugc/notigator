@@ -38,3 +38,5 @@ You can configure `notigator` using flags, envs or a config file, the config fil
   "trello-token":"token"
 }
 ```
+
+Right now the only Sources supported are Trello, Github and Gitlab, you do not need to configure all of them.
