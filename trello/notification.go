@@ -65,7 +65,6 @@ func (n *notificationRepository) Filter(ctx context.Context) ([]*notification.No
 
 	notifications := make([]*notification.Notification, 0)
 	titles := make(map[string]struct{}, 0)
-	fmt.Println(len(nots))
 	for _, n := range nots {
 		// If it's not a Card action we do not want it
 		if n.Data.Card == nil {
