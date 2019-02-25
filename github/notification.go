@@ -43,10 +43,6 @@ func (n *notificationRepository) Filter(ctx context.Context) ([]*notification.No
 		lastNotification *github.Notification = nots[len(nots)-1]
 	)
 
-	// TODO: More investigation on the fact that notifications
-	// do not have pagination so IDK if all of them are returned at
-	// once or not
-
 	// While !finishPagination we'll fetch the notifications after the
 	// last notification fetched, there is no way to know if those are
 	// all the notifications on the first fetch
@@ -58,7 +54,7 @@ func (n *notificationRepository) Filter(ctx context.Context) ([]*notification.No
 			return nil, fmt.Errorf("could not fetch the list of notifications: %s", err)
 		}
 
-		if len(nnots) == 0 || (len(nnots) == 1 && nnots[0] == lastNotification) {
+		if len(nnots) == 0 {
 			finishPagination = true
 		} else {
 			lastNotification = nots[len(nots)-1]
