@@ -30,9 +30,40 @@ func NewNotificationRepository(ctx context.Context, token string) notification.R
 }
 
 func (n *notificationRepository) Filter(ctx context.Context) ([]*notification.Notification, error) {
-	nots, _, err := n.client.Activity.ListNotifications(ctx, nil)
+	nots, resp, err := n.client.Activity.ListNotifications(ctx, nil)
 	if err != nil {
 		return nil, fmt.Errorf("could not fetch the list of notifications: %s", err)
+	}
+
+	var (
+		// finishPagination flags if the pagination has finished
+		finishPagination bool
+
+		// nextPage stores the current next page
+		nextPage = resp.NextPage
+	)
+
+	if resp.NextPage == 0 {
+		finishPagination = true
+	}
+
+	for !finishPagination {
+		nnots, resp, err := n.client.Activity.ListNotifications(ctx, &github.NotificationListOptions{
+			ListOptions: github.ListOptions{
+				Page: nextPage,
+			},
+		})
+		if err != nil {
+			return nil, fmt.Errorf("could not fetch the list of notifications: %s", err)
+		}
+
+		nots = append(nots, nnots...)
+
+		if resp.NextPage == 0 {
+			finishPagination = true
+		} else {
+			nextPage = resp.NextPage
+		}
 	}
 
 	notifications := make([]*notification.Notification, 0, len(nots))
