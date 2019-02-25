@@ -30,7 +30,7 @@ func NewNotificationRepository(ctx context.Context, token string) notification.R
 }
 
 func (n *notificationRepository) Filter(ctx context.Context) ([]*notification.Notification, error) {
-	nots, resp, err := n.client.Activity.ListNotifications(ctx, nil)
+	nots, _, err := n.client.Activity.ListNotifications(ctx, nil)
 	if err != nil {
 		return nil, fmt.Errorf("could not fetch the list of notifications: %s", err)
 	}
@@ -39,30 +39,30 @@ func (n *notificationRepository) Filter(ctx context.Context) ([]*notification.No
 		// finishPagination flags if the pagination has finished
 		finishPagination bool
 
-		// nextPage stores the current next page
-		nextPage = resp.NextPage
+		// lastNotification the last notification fetched
+		lastNotification *github.Notification = nots[len(nots)-1]
 	)
 
-	if resp.NextPage == 0 {
-		finishPagination = true
-	}
+	// TODO: More investigation on the fact that notifications
+	// do not have pagination so IDK if all of them are returned at
+	// once or not
 
+	// While !finishPagination we'll fetch the notifications after the
+	// last notification fetched, there is no way to know if those are
+	// all the notifications on the first fetch
 	for !finishPagination {
-		nnots, resp, err := n.client.Activity.ListNotifications(ctx, &github.NotificationListOptions{
-			ListOptions: github.ListOptions{
-				Page: nextPage,
-			},
+		nnots, _, err := n.client.Activity.ListNotifications(ctx, &github.NotificationListOptions{
+			Before: *lastNotification.UpdatedAt,
 		})
 		if err != nil {
 			return nil, fmt.Errorf("could not fetch the list of notifications: %s", err)
 		}
 
-		nots = append(nots, nnots...)
-
-		if resp.NextPage == 0 {
+		if len(nnots) == 0 || (len(nnots) == 1 && nnots[0] == lastNotification) {
 			finishPagination = true
 		} else {
-			nextPage = resp.NextPage
+			lastNotification = nots[len(nots)-1]
+			nots = append(nots, nnots...)
 		}
 	}
 
