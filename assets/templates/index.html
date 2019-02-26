@@ -32,7 +32,7 @@
           <%= group.scope %>
         </li>
         <% _.each(group.events, function(event) { %>
-          <a href="<%= event.get('url') %>" _target="blank" class="list-group-item list-group-item-action">
+          <a href="<%= event.get('url') %>" target="_blank" class="list-group-item list-group-item-action">
             <%= event.get('title') %>
           </a>
         <% }); %>
