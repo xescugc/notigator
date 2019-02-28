@@ -35,6 +35,10 @@ func (n *notificationRepository) Filter(ctx context.Context) ([]*notification.No
 		return nil, fmt.Errorf("could not fetch the list of notifications: %s", err)
 	}
 
+	if len(nots) == 0 {
+		return nil, nil
+	}
+
 	var (
 		// finishPagination flags if the pagination has finished
 		finishPagination bool
