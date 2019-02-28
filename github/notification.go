@@ -89,6 +89,8 @@ func buildURL(n *github.Notification) (*url.URL, error) {
 		base = fmt.Sprintf("%s/issues/%s", base, issueID)
 	case "PullRequest":
 		base = fmt.Sprintf("%s/pull/%s", base, issueID)
+	case "Commit":
+		base = fmt.Sprintf("%s/commit/%s", base, issueID)
 	}
 
 	if n.Subject.LatestCommentURL != nil {
