@@ -7,12 +7,17 @@ import (
 )
 
 type Config struct {
-	Port         string `mapstructure:"port"`
-	GitHubToken  string `mapstructure:"github-token"`
-	GitLabToken  string `mapstructure:"gitlab-token"`
+	Port string `mapstructure:"port"`
+
+	GitHubToken string `mapstructure:"github-token"`
+
+	GitLabToken string `mapstructure:"gitlab-token"`
+
 	TrelloToken  string `mapstructure:"trello-token"`
 	TrelloApiKey string `mapstructure:"trello-api-key"`
 	TrelloMember string `mapstructure:"trello-api-key"`
+
+	ZeplinToken string `mapstructure:"zeplin-token"`
 }
 
 func New(v *viper.Viper) (*Config, error) {
