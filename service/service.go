@@ -17,13 +17,15 @@ type service struct {
 	gh notification.Repository
 	gl notification.Repository
 	tr notification.Repository
+	zp notification.Repository
 }
 
-func New(gh, gl, tr notification.Repository) Service {
+func New(gh, gl, tr, zp notification.Repository) Service {
 	return &service{
 		gh: gh,
 		gl: gl,
 		tr: tr,
+		zp: zp,
 	}
 }
 
@@ -57,6 +59,8 @@ func (s *service) selectSource(srcCan source.Canonical) (notification.Repository
 		return s.gl, nil
 	case source.Trello:
 		return s.tr, nil
+	case source.Zeplin:
+		return s.zp, nil
 	default:
 		return nil, fmt.Errorf("could not found source %q", srcCan)
 	}
