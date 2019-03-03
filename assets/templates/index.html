@@ -27,17 +27,21 @@
     </div>
 
 		<script type="text/template" id="events-view-tmpl">
-      <% _.each(events.groupByScopes(), function(group) { %>
-        <li class="list-group-item list-group-item-secondary">
-          <%= group.scope %>
-        </li>
-        <% _.each(group.events, function(event) { %>
-          <a href="<%= event.get('url') %>" target="_blank" class="list-group-item list-group-item-action">
-            <%= event.get('title') %>
-          </a>
+      <% if (events.size() == 0) { %>
+        <center>No notifications!</center>
+      <% } else { %>
+        <% _.each(events.groupByScopes(), function(group) { %>
+          <li class="list-group-item list-group-item-secondary">
+            <%= group.scope %>
+          </li>
+          <% _.each(group.events, function(event) { %>
+            <a href="<%= event.get('url') %>" target="_blank" class="list-group-item list-group-item-action">
+              <%= event.get('title') %>
+            </a>
+          <% }); %>
+          </br>
         <% }); %>
-        </br>
-      <% }); %>
+      <% } %>
 		</script>
 
 		<script type="text/template" id="source-view-tmpl">
