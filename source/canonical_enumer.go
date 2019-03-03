@@ -6,9 +6,9 @@ import (
 	"fmt"
 )
 
-const _CanonicalName = "githubgitlabtrello"
+const _CanonicalName = "githubgitlabtrellozeplin"
 
-var _CanonicalIndex = [...]uint8{0, 6, 12, 18}
+var _CanonicalIndex = [...]uint8{0, 6, 12, 18, 24}
 
 func (i Canonical) String() string {
 	if i < 0 || i >= Canonical(len(_CanonicalIndex)-1) {
@@ -17,12 +17,13 @@ func (i Canonical) String() string {
 	return _CanonicalName[_CanonicalIndex[i]:_CanonicalIndex[i+1]]
 }
 
-var _CanonicalValues = []Canonical{0, 1, 2}
+var _CanonicalValues = []Canonical{0, 1, 2, 3}
 
 var _CanonicalNameToValueMap = map[string]Canonical{
 	_CanonicalName[0:6]:   0,
 	_CanonicalName[6:12]:  1,
 	_CanonicalName[12:18]: 2,
+	_CanonicalName[18:24]: 3,
 }
 
 // CanonicalString retrieves an enum value from the enum constants string name.

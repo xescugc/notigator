@@ -18,6 +18,7 @@ import (
 	"github.com/xescugc/notigator/gitlab"
 	"github.com/xescugc/notigator/service"
 	"github.com/xescugc/notigator/trello"
+	"github.com/xescugc/notigator/zeplin"
 )
 
 var (
@@ -36,8 +37,9 @@ var (
 			gh := github.NewNotificationRepository(ctx, cfg.GitHubToken)
 			gl := gitlab.NewNotificationRepository(ctx, cfg.GitLabToken)
 			tr := trello.NewNotificationRepository(ctx, cfg.TrelloApiKey, cfg.TrelloToken, cfg.TrelloMember)
+			zp := zeplin.NewNotificationRepository(ctx, cfg.ZeplinToken)
 
-			s := service.New(gh, gl, tr)
+			s := service.New(gh, gl, tr, zp)
 
 			mux := http.NewServeMux()
 
@@ -79,4 +81,7 @@ func init() {
 
 	serveCmd.PersistentFlags().String("trello-member", "", "Trello member")
 	viper.BindPFlag("trello-member", serveCmd.PersistentFlags().Lookup("trello-member"))
+
+	serveCmd.PersistentFlags().String("zeplin-token", "", "Zeplin Auth Token")
+	viper.BindPFlag("zeplin-token", serveCmd.PersistentFlags().Lookup("zeplin-token"))
 }

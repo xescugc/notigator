@@ -13,6 +13,7 @@ const (
 	Github Canonical = iota
 	Gitlab
 	Trello
+	Zeplin
 )
 
 var (
@@ -28,6 +29,10 @@ var (
 		Source{
 			Canonical: Trello,
 			Name:      "Trello",
+		},
+		Source{
+			Canonical: Zeplin,
+			Name:      "Zeplin",
 		},
 	}
 )
