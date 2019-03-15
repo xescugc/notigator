@@ -103,7 +103,7 @@ $(function(){
       return this;
     },
     toggleNotifications: function(e) {
-      this.$el.find("#notifications-"+e.target.id).toggle("fast")
+      this.$el.find("#notifications-"+e.currentTarget.id).toggle("fast")
     },
   })
 
