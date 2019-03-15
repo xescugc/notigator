@@ -32,7 +32,14 @@
       <% } else { %>
         <% _.each(events.groupByScopes(), function(group, idx) { %>
           <li id="<%= idx %>" class="scope-title list-group-item list-group-item-secondary">
-            <%= group.scope %>
+            <div class="row">
+              <div class="col-11">
+                <%= group.scope %>
+              </div>
+              <div class="col-1">
+                <%= group.events.length %>
+              </div>
+            </div>
           </li>
           <div id="notifications-<%= idx %>">
             <% _.each(group.events, function(event) { %>
