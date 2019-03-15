@@ -95,9 +95,15 @@ $(function(){
 
   var EventsView = Backbone.View.extend({
     template: _.template($('#events-view-tmpl').html()),
+    events: {
+      "click .scope-title": "toggleNotifications",
+    },
     render: function() {
       this.$el.html(this.template({ events: this.collection }));
       return this;
+    },
+    toggleNotifications: function(e) {
+      this.$el.find("#notifications-"+e.target.id).toggle("fast")
     },
   })
 
