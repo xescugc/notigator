@@ -11,7 +11,7 @@ func NewSources(src []source.Source) []Source {
 	rsrc := make([]Source, 0, len(src))
 
 	for _, v := range src {
-		rsrc = append(rsrc, Source{Canonical: v.Canonical.String(), Name: v.Name})
+		rsrc = append(rsrc, Source{Canonical: v.ID, Name: v.Name})
 	}
 
 	return rsrc
