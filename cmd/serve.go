@@ -2,7 +2,6 @@ package cmd
 
 import (
 	"bytes"
-	"context"
 	"fmt"
 	"io"
 	"os"
@@ -92,16 +91,15 @@ var (
 )
 
 func initializeRepository(sc source.Canonical, cs config.Source) (notification.Repository, error) {
-	ctx := context.Background()
 	switch sc {
 	case source.Github:
-		return github.NewNotificationRepository(ctx, cs.Token), nil
+		return github.NewNotificationRepository(cs.Token), nil
 	case source.Gitlab:
-		return gitlab.NewNotificationRepository(ctx, cs.Token), nil
+		return gitlab.NewNotificationRepository(cs.Token), nil
 	case source.Trello:
-		return trello.NewNotificationRepository(ctx, cs.ApiKey, cs.Token), nil
+		return trello.NewNotificationRepository(cs.ApiKey, cs.Token), nil
 	case source.Zeplin:
-		return zeplin.NewNotificationRepository(ctx, cs.Token), nil
+		return zeplin.NewNotificationRepository(cs.Token), nil
 	default:
 		return nil, fmt.Errorf("not implemented source %q", sc)
 	}

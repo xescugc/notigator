@@ -14,7 +14,7 @@ type notificationRepository struct {
 	client *trello.Client
 }
 
-func NewNotificationRepository(ctx context.Context, apiKey, token string) notification.Repository {
+func NewNotificationRepository(apiKey, token string) notification.Repository {
 	return &notificationRepository{
 		client: trello.NewClient(apiKey, token),
 	}
