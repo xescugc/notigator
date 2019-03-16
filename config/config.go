@@ -9,15 +9,15 @@ import (
 type Config struct {
 	Port string `mapstructure:"port"`
 
-	GitHubToken string `mapstructure:"github-token"`
+	Sources []Source `mapstructure:"sources"`
+}
 
-	GitLabToken string `mapstructure:"gitlab-token"`
+type Source struct {
+	Name      string `mapstructure:"name"`
+	Canonical string `mapstructure:"canonical"`
 
-	TrelloToken  string `mapstructure:"trello-token"`
-	TrelloApiKey string `mapstructure:"trello-api-key"`
-	TrelloMember string `mapstructure:"trello-api-key"`
-
-	ZeplinToken string `mapstructure:"zeplin-token"`
+	Token  string `mapstructure:"token"`
+	ApiKey string `mapstructure:"api_key"`
 }
 
 func New(v *viper.Viper) (*Config, error) {
