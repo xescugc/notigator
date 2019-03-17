@@ -14,6 +14,8 @@ type notificationRepository struct {
 	client *gitlab.Client
 }
 
+// NewNotificationRepository returns the implementation of
+// a notification.Repository for a gitlab Source
 func NewNotificationRepository(token string) notification.Repository {
 	return &notificationRepository{
 		client: gitlab.NewClient(nil, token),

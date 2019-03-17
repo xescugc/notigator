@@ -6,6 +6,8 @@ import (
 	"github.com/xescugc/notigator/notification"
 )
 
+// Notification it's the entity used to
+// transform to JSON the notification.Notification
 type Notification struct {
 	ID        string    `json:"id"`
 	Title     string    `json:"title"`
@@ -14,6 +16,7 @@ type Notification struct {
 	UpdatedAt time.Time `json:"updated_at"`
 }
 
+// NewNotifications returns a conversion of the ns to Notification
 func NewNotifications(ns []*notification.Notification) []*Notification {
 	rns := make([]*Notification, 0, len(ns))
 

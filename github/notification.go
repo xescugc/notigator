@@ -16,6 +16,8 @@ type notificationRepository struct {
 	client *github.Client
 }
 
+// NewNotificationRepository returns the implementation of
+// a notification.Repository for a github Source
 func NewNotificationRepository(token string) notification.Repository {
 	ts := oauth2.StaticTokenSource(
 		&oauth2.Token{AccessToken: token},

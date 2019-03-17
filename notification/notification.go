@@ -5,6 +5,9 @@ import (
 	"time"
 )
 
+// Notification is the basic entity
+// that represents a notification of
+// any Source
 type Notification struct {
 	ID        string
 	Title     string

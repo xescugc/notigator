@@ -41,11 +41,15 @@ var (
 
 			notifications := make(map[string]notification.Repository)
 			sources := make([]source.Source, 0, len(cfg.Sources))
+
+			// Maps all the sources from the configuration to source.Source
+			// and initializes the notification repositories needed
 			for _, s := range cfg.Sources {
 				srcCan, err := source.CanonicalString(s.Canonical)
 				if err != nil {
 					return fmt.Errorf("invalid canonical on config %q: %s", s.Canonical, err)
 				}
+
 				src := source.Source{
 					Name:      s.Name,
 					Canonical: srcCan,
@@ -97,7 +101,7 @@ func initializeRepository(sc source.Canonical, cs config.Source) (notification.R
 	case source.Gitlab:
 		return gitlab.NewNotificationRepository(cs.Token), nil
 	case source.Trello:
-		return trello.NewNotificationRepository(cs.ApiKey, cs.Token), nil
+		return trello.NewNotificationRepository(cs.APIKey, cs.Token), nil
 	case source.Zeplin:
 		return zeplin.NewNotificationRepository(cs.Token), nil
 	default:

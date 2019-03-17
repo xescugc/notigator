@@ -14,12 +14,15 @@ type notificationRepository struct {
 	client *trello.Client
 }
 
+// NewNotificationRepository returns the implementation of
+// a notification.Repository for a trello Source
 func NewNotificationRepository(apiKey, token string) notification.Repository {
 	return &notificationRepository{
 		client: trello.NewClient(apiKey, token),
 	}
 }
 
+// Notification representation of a Trello notification
 type Notification struct {
 	ID              string           `json:"id"`
 	IDAction        string           `json:"idAction"`
@@ -32,18 +35,21 @@ type Notification struct {
 	MemberCreator   *trello.Member   `json:"memberCreator,omitempty"`
 }
 
+// NotificationData the Data of the Notification
 type NotificationData struct {
 	Text  string                 `json:"text"`
 	Card  *NotificationDataCard  `json:"card,omitempty"`
 	Board *NotificationDataBoard `json:"board,omitempty"`
 }
 
+// NotificationDataBoard the Board Data of a Notification
 type NotificationDataBoard struct {
 	ID        string `json:"id"`
 	ShortLink string `json:"shortLink"`
 	Name      string `json:"name"`
 }
 
+// NotificationDataCard the Card Data of a Notification
 type NotificationDataCard struct {
 	ID        string `json:"id"`
 	IDShort   int    `json:"idShort"`
@@ -62,7 +68,7 @@ func (n *notificationRepository) Filter(ctx context.Context) ([]*notification.No
 	}
 
 	notifications := make([]*notification.Notification, 0)
-	titles := make(map[string]struct{}, 0)
+	titles := make(map[string]struct{})
 	for _, n := range nots {
 		// If it's not a Card action we do not want it
 		if n.Data.Card == nil {

@@ -8,8 +8,12 @@ import (
 	"github.com/xescugc/notigator/source"
 )
 
+// Service it's the public interface for the Notigator Service
 type Service interface {
+	// GetSources returns a list of all the configured source.Source
 	GetSources(ctx context.Context) ([]source.Source, error)
+
+	// GetSourceNotifications returns all the notifications of the srcID
 	GetSourceNotifications(ctx context.Context, srcID string) ([]*notification.Notification, error)
 }
 
@@ -18,6 +22,7 @@ type service struct {
 	notifications map[string]notification.Repository
 }
 
+// New returns an implementation of the Service interface
 func New(srcs source.Repository, nots map[string]notification.Repository) Service {
 	return &service{
 		sources:       srcs,

@@ -17,6 +17,8 @@ type notificationRepository struct {
 	client *http.Client
 }
 
+// NewNotificationRepository returns the implementation of
+// a notification.Repository for a zeplin Source
 func NewNotificationRepository(token string) notification.Repository {
 	return &notificationRepository{
 		token:  token,
@@ -24,6 +26,8 @@ func NewNotificationRepository(token string) notification.Repository {
 	}
 }
 
+// Notification it's the internal representation
+// of a Zeplin notification
 type Notification struct {
 	Params struct {
 		Source struct {

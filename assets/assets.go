@@ -8,6 +8,7 @@ import (
 
 //go:generate go-bindata-assetfs -nometadata -ignore=bindata\.go -ignore=doc\.go -ignore=assets\.go -pkg assets ./...
 
+// AssetFS it's a wrapper to make the assetFS public
 func AssetFS() *assetfs.AssetFS {
 	// Ideally I should only call this function but for some reason it did not work as expected so
 	// I had to copy the content and do it correctly

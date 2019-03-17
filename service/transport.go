@@ -9,6 +9,7 @@ import (
 	"github.com/gorilla/mux"
 )
 
+// MakeHandler returns an http.Handler for the s
 func MakeHandler(s Service) http.Handler {
 	getSourcesHandler := kithttp.NewServer(
 		makeGetSources(s),

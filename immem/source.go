@@ -10,6 +10,8 @@ type sourceRepository struct {
 	sources []source.Source
 }
 
+// NewSourceRepository returns the implementation of a source.Repository
+// from an "in memory" sotrage
 func NewSourceRepository(srcs []source.Source) source.Repository {
 	return &sourceRepository{
 		sources: srcs,
