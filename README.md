@@ -42,4 +42,6 @@ You can configure `notigator` with config file. The config file should look like
 }
 ```
 
-To have more documentation on the supported Sources and how to configure them read the wiki
+**Note:** All the flags can also be passed via config file or envs.
+
+To have more documentation on the supported Sources and how to configure them read the [wiki](https://github.com/xescugc/notigator/wiki/Config-File)
