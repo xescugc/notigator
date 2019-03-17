@@ -5,7 +5,6 @@ import (
 
 	"github.com/go-kit/kit/endpoint"
 	"github.com/xescugc/notigator/service/models"
-	"github.com/xescugc/notigator/source"
 )
 
 type response struct {
@@ -23,13 +22,13 @@ func makeGetSources(s Service) endpoint.Endpoint {
 }
 
 type getSourceNotificationsRequest struct {
-	SourceCanonical source.Canonical
+	SourceID string
 }
 
 func makeGetSourceNotifications(s Service) endpoint.Endpoint {
 	return func(ctx context.Context, request interface{}) (interface{}, error) {
 		req := request.(getSourceNotificationsRequest)
-		notifications, err := s.GetSourceNotifications(ctx, req.SourceCanonical)
+		notifications, err := s.GetSourceNotifications(ctx, req.SourceID)
 		if err != nil {
 			return nil, err
 		}

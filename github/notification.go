@@ -16,10 +16,12 @@ type notificationRepository struct {
 	client *github.Client
 }
 
-func NewNotificationRepository(ctx context.Context, token string) notification.Repository {
+func NewNotificationRepository(token string) notification.Repository {
 	ts := oauth2.StaticTokenSource(
 		&oauth2.Token{AccessToken: token},
 	)
+
+	ctx := context.Background()
 	tc := oauth2.NewClient(ctx, ts)
 
 	client := github.NewClient(tc)

@@ -17,7 +17,7 @@ type notificationRepository struct {
 	client *http.Client
 }
 
-func NewNotificationRepository(ctx context.Context, token string) notification.Repository {
+func NewNotificationRepository(token string) notification.Repository {
 	return &notificationRepository{
 		token:  token,
 		client: &http.Client{},

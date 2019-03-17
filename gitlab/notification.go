@@ -14,7 +14,7 @@ type notificationRepository struct {
 	client *gitlab.Client
 }
 
-func NewNotificationRepository(ctx context.Context, token string) notification.Repository {
+func NewNotificationRepository(token string) notification.Repository {
 	return &notificationRepository{
 		client: gitlab.NewClient(nil, token),
 	}

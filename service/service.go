@@ -10,37 +10,29 @@ import (
 
 type Service interface {
 	GetSources(ctx context.Context) ([]source.Source, error)
-	GetSourceNotifications(ctx context.Context, srcCan source.Canonical) ([]*notification.Notification, error)
+	GetSourceNotifications(ctx context.Context, srcID string) ([]*notification.Notification, error)
 }
 
 type service struct {
-	gh notification.Repository
-	gl notification.Repository
-	tr notification.Repository
-	zp notification.Repository
+	sources       source.Repository
+	notifications map[string]notification.Repository
 }
 
-func New(gh, gl, tr, zp notification.Repository) Service {
+func New(srcs source.Repository, nots map[string]notification.Repository) Service {
 	return &service{
-		gh: gh,
-		gl: gl,
-		tr: tr,
-		zp: zp,
+		sources:       srcs,
+		notifications: nots,
 	}
 }
 
 func (s *service) GetSources(ctx context.Context) ([]source.Source, error) {
-	return source.Sources, nil
+	return s.sources.Filter(ctx)
 }
 
-func (s *service) GetSourceNotifications(ctx context.Context, srcCan source.Canonical) ([]*notification.Notification, error) {
-	if !srcCan.IsACanonical() {
-		return nil, fmt.Errorf("could not found source %q", srcCan)
-	}
-
-	nr, err := s.selectSource(srcCan)
-	if err != nil {
-		return nil, fmt.Errorf("could not select source: %s", err)
+func (s *service) GetSourceNotifications(ctx context.Context, srcID string) ([]*notification.Notification, error) {
+	nr, ok := s.notifications[srcID]
+	if !ok {
+		return nil, fmt.Errorf("source not defined %q", srcID)
 	}
 
 	nts, err := nr.Filter(ctx)
@@ -49,19 +41,4 @@ func (s *service) GetSourceNotifications(ctx context.Context, srcCan source.Cano
 	}
 
 	return nts, nil
-}
-
-func (s *service) selectSource(srcCan source.Canonical) (notification.Repository, error) {
-	switch srcCan {
-	case source.Github:
-		return s.gh, nil
-	case source.Gitlab:
-		return s.gl, nil
-	case source.Trello:
-		return s.tr, nil
-	case source.Zeplin:
-		return s.zp, nil
-	default:
-		return nil, fmt.Errorf("could not found source %q", srcCan)
-	}
 }

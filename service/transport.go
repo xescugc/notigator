@@ -7,7 +7,6 @@ import (
 
 	kithttp "github.com/go-kit/kit/transport/http"
 	"github.com/gorilla/mux"
-	"github.com/xescugc/notigator/source"
 )
 
 func MakeHandler(s Service) http.Handler {
@@ -28,7 +27,7 @@ func MakeHandler(s Service) http.Handler {
 	r := mux.NewRouter()
 
 	r.Handle("/api/sources", getSourcesHandler).Methods("GET")
-	r.Handle("/api/sources/{sourceCanonical}/notifications", getSourceNotificationsHandler).Methods("GET")
+	r.Handle("/api/sources/{sourceID}/notifications", getSourceNotificationsHandler).Methods("GET")
 
 	return r
 }
@@ -38,12 +37,8 @@ func decodeGetSourcesRequest(_ context.Context, r *http.Request) (interface{}, e
 }
 
 func decodeGetSourceNotificationsRequest(_ context.Context, r *http.Request) (interface{}, error) {
-	srcCan, err := source.CanonicalString(mux.Vars(r)["sourceCanonical"])
-	if err != nil {
-		return nil, err
-	}
 	return getSourceNotificationsRequest{
-		SourceCanonical: srcCan,
+		SourceID: mux.Vars(r)["sourceID"],
 	}, nil
 }
 

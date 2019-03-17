@@ -1,8 +1,4 @@
 $(function(){
-  // defaultSourceCanonical it's the default
-  // source that will always be used
-  var defaultSourceCanonical = 'github'
-
   // alertTimeout it's the default timeout
   // to show the alerts, 2s
   var alertTimeout = 2000
@@ -14,7 +10,14 @@ $(function(){
     return "notigator:"+event
   }
 
-  var Event = Backbone.Model.extend({
+  // catchError it's a global function that will call showAlert
+  // with the response error
+  var catchError = function(collection, response, options) {
+    showAlert(response.responseJSON.error)
+  }
+
+
+  var Notification = Backbone.Model.extend({
     attributes: {
       "id": "",
       "title": "",
@@ -23,31 +26,17 @@ $(function(){
       "updated_at": "",
     },
   });
-  var Source = Backbone.Model.extend({
-    id: 'canonical',
-    attributes: {
-      "canonical": "",
-      "name": "",
-      "active": false,
-    },
-  });
-  var Alert = Backbone.Model.extend({
-    attributes: {
-      "text": "",
-    }
-  })
-
-  var EventList = Backbone.Collection.extend({
-    model: Event,
-    url: function() {
-      var active = Sources.active ? Sources.active.get('canonical') : defaultSourceCanonical
-      return '/api/sources/'+active+'/notifications';
-    },
+  var NotificationList = Backbone.Collection.extend({
+    model: Notification,
 
     comparator: 'updated_at',
 
     parse: function(response, options) {
       return response.data;
+    },
+
+    initialize: function(models, options) {
+      this.url = options.url
     },
 
     groupByScopes: function() {
@@ -57,14 +46,14 @@ $(function(){
 
       var res = []
 
-      _.each(gps, function(events, scope) {
-        var ne =_.sortBy(events, function(event) {
+      _.each(gps, function(notifications, scope) {
+        var ne =_.sortBy(notifications, function(event) {
           return event.get("updated_at");
         });
         ne = ne.reverse();
         res.push({
           scope: scope,
-          events: ne,
+          notifications: ne,
           updated_at: ne[0].get("updated_at"),
         });
       });
@@ -72,9 +61,28 @@ $(function(){
       return _.sortBy(res, function(item) {
         return item.updated_at;
       }).reverse();
-
     },
   });
+
+  var Source = Backbone.Model.extend({
+    id: "canonical",
+    attributes: {
+      "canonical": "",
+      "name": "",
+      "active": false,
+    },
+    initialize: function(options) {
+      this.notifications = new NotificationList(null, {
+        url: this.url() + "/" + this.get("canonical") + "/notifications"
+      })
+    },
+  });
+
+  var Alert = Backbone.Model.extend({
+    attributes: {
+      "text": "",
+    }
+  })
 
   var SourceList = Backbone.Collection.extend({
     model: Source,
@@ -90,16 +98,13 @@ $(function(){
     },
   });
 
-  var Events = new EventList();
-  var Sources = new SourceList();
-
-  var EventsView = Backbone.View.extend({
-    template: _.template($('#events-view-tmpl').html()),
+  var NotificationsView = Backbone.View.extend({
+    template: _.template($('#notifications-view-tmpl').html()),
     events: {
       "click .scope-title": "toggleNotifications",
     },
     render: function() {
-      this.$el.html(this.template({ events: this.collection }));
+      this.$el.html(this.template({ notifications: this.collection }));
       return this;
     },
     toggleNotifications: function(e) {
@@ -150,15 +155,6 @@ $(function(){
     }
   })
 
-  // setDefaultSource sets the sources collection
-  // 'active' canonical to the actual model
-  // withing it
-  var setDefaultSource = function(sources, response, options) {
-    var src = sources.findWhere({canonical: defaultSourceCanonical});
-    src.set('active', true);
-    sources.active = src;
-  }
-
   // showAlert prints an alert with the
   // given text
   var showAlert = function(text) {
@@ -169,28 +165,39 @@ $(function(){
     }, alertTimeout);
   }
 
-  // catchError it's a global function that will call showAlert
-  // with the response error
-  var catchError = function(collection, response, options) {
-    showAlert(response.responseJSON.error)
-  }
+  var Sources = new SourceList();
 
   var AppView = Backbone.View.extend({
     el: $("#main"),
 
     initialize: function() {
-      this.listenTo(Events, 'sync', this.renderEvents);
-      this.listenTo(Events, 'reset', this.resetEvents);
       this.listenTo(Sources, 'sync', this.renderSources);
-      this.listenTo(Sources, buildCustomEvent('change:active'), this.fetchEvents);
+      this.listenTo(Sources, buildCustomEvent('change:active'), this.fetchNotifications);
 
-      Sources.fetch({success: setDefaultSource, error: catchError});
-      Events.fetch({error: catchError});
+      Sources.fetch({success: this.setDefaultSource.bind(this), error: catchError});
     },
 
-    renderEvents: function() {
-      var events = new EventsView({ collection: Events });
-      this.$("#list-events").html(events.render().el);
+    // setDefaultSource sets the sources collection
+    // 'active' canonical to the actual model
+    // withing it
+    setDefaultSource: function(sources, response, options) {
+      var that = this
+      var src = sources.first()
+      src.set('active', true);
+      sources.active = src;
+      sources.each(function(src) {
+        that.listenTo(src.notifications, 'sync', that.renderNotifications);
+        that.listenTo(src.notifications, 'reset', that.resetNotifications);
+      })
+
+      // I could just call the this.fetchNotifications but I feel that having
+      // the actual event would help to understand the flow
+      Sources.trigger(buildCustomEvent('change:active'));
+    },
+
+    renderNotifications: function() {
+      var notifications = new NotificationsView({ collection: Sources.active.notifications });
+      this.$("#list-notifications").html(notifications.render().el);
       return this;
     },
 
@@ -202,12 +209,12 @@ $(function(){
       return this;
     },
 
-    resetEvents: function() {
-      this.$("#list-events").html("");
+    resetNotifications: function() {
+      this.$("#list-notifications").html("");
     },
 
-    fetchEvents: function() {
-      Events.fetch({reset: true, error: catchError});
+    fetchNotifications: function() {
+      Sources.active.notifications.fetch({reset: true, error: catchError});
     },
   });
 

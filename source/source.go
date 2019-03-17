@@ -1,10 +1,21 @@
 package source
 
+import (
+	"fmt"
+
+	"github.com/gosimple/slug"
+)
+
 type Canonical int
 
 type Source struct {
-	Canonical Canonical
+	ID        string
 	Name      string
+	Canonical Canonical
+}
+
+func (s *Source) BuildID() {
+	s.ID = slug.Make(fmt.Sprintf("%s-%s", s.Canonical, s.Name))
 }
 
 //go:generate enumer -type=Canonical -transform=snake
@@ -14,25 +25,4 @@ const (
 	Gitlab
 	Trello
 	Zeplin
-)
-
-var (
-	Sources = []Source{
-		Source{
-			Canonical: Github,
-			Name:      "GitHub",
-		},
-		Source{
-			Canonical: Gitlab,
-			Name:      "GitLab",
-		},
-		Source{
-			Canonical: Trello,
-			Name:      "Trello",
-		},
-		Source{
-			Canonical: Zeplin,
-			Name:      "Zeplin",
-		},
-	}
 )

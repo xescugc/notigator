@@ -2,7 +2,6 @@ package cmd
 
 import (
 	"bytes"
-	"context"
 	"fmt"
 	"io"
 	"os"
@@ -16,10 +15,18 @@ import (
 	"github.com/xescugc/notigator/config"
 	"github.com/xescugc/notigator/github"
 	"github.com/xescugc/notigator/gitlab"
+	"github.com/xescugc/notigator/immem"
+	"github.com/xescugc/notigator/notification"
 	"github.com/xescugc/notigator/service"
+	"github.com/xescugc/notigator/source"
 	"github.com/xescugc/notigator/trello"
 	"github.com/xescugc/notigator/zeplin"
 )
+
+func init() {
+	serveCmd.PersistentFlags().StringP("port", "p", "3000", "Destination port")
+	viper.BindPFlag("port", serveCmd.PersistentFlags().Lookup("port"))
+}
 
 var (
 	serveCmd = &cobra.Command{
@@ -32,19 +39,39 @@ var (
 				return err
 			}
 
-			ctx := context.Background()
+			notifications := make(map[string]notification.Repository)
+			sources := make([]source.Source, 0, len(cfg.Sources))
+			for _, s := range cfg.Sources {
+				srcCan, err := source.CanonicalString(s.Canonical)
+				if err != nil {
+					return fmt.Errorf("invalid canonical on config %q: %s", s.Canonical, err)
+				}
+				src := source.Source{
+					Name:      s.Name,
+					Canonical: srcCan,
+				}
+				src.BuildID()
+				sources = append(sources, src)
 
-			gh := github.NewNotificationRepository(ctx, cfg.GitHubToken)
-			gl := gitlab.NewNotificationRepository(ctx, cfg.GitLabToken)
-			tr := trello.NewNotificationRepository(ctx, cfg.TrelloApiKey, cfg.TrelloToken, cfg.TrelloMember)
-			zp := zeplin.NewNotificationRepository(ctx, cfg.ZeplinToken)
+				nr, err := initializeRepository(srcCan, s)
+				if err != nil {
+					return fmt.Errorf("could not initializa repository: %s", err)
+				}
 
-			s := service.New(gh, gl, tr, zp)
+				if _, ok := notifications[src.ID]; ok {
+					return fmt.Errorf("there is already a repeated Name+Canonical combination on the confi %q", src.ID)
+				}
+
+				notifications[src.ID] = nr
+			}
+
+			srcr := immem.NewSourceRepository(sources)
+
+			s := service.New(srcr, notifications)
 
 			mux := http.NewServeMux()
 
 			mux.Handle("/assets/", http.StripPrefix("/assets/", http.FileServer(assets.AssetFS())))
-			//mux.Handle("/assets/", http.FileServer(assets.AssetFS()))
 
 			mux.Handle("/api/", service.MakeHandler(s))
 
@@ -63,25 +90,17 @@ var (
 	}
 )
 
-func init() {
-	serveCmd.PersistentFlags().StringP("port", "p", "3000", "Destination port")
-	viper.BindPFlag("port", serveCmd.PersistentFlags().Lookup("port"))
-
-	serveCmd.PersistentFlags().String("github-token", "", "Github Auth Token")
-	viper.BindPFlag("github-token", serveCmd.PersistentFlags().Lookup("github-token"))
-
-	serveCmd.PersistentFlags().String("gitlab-token", "", "Gitlab Auth Token")
-	viper.BindPFlag("gitlab-token", serveCmd.PersistentFlags().Lookup("gitlab-token"))
-
-	serveCmd.PersistentFlags().String("trello-token", "", "Trello Auth Token")
-	viper.BindPFlag("trello-token", serveCmd.PersistentFlags().Lookup("trello-token"))
-
-	serveCmd.PersistentFlags().String("trello-api-key", "", "Trello Api Key")
-	viper.BindPFlag("trello-api-key", serveCmd.PersistentFlags().Lookup("trello-api-key"))
-
-	serveCmd.PersistentFlags().String("trello-member", "", "Trello member")
-	viper.BindPFlag("trello-member", serveCmd.PersistentFlags().Lookup("trello-member"))
-
-	serveCmd.PersistentFlags().String("zeplin-token", "", "Zeplin Auth Token")
-	viper.BindPFlag("zeplin-token", serveCmd.PersistentFlags().Lookup("zeplin-token"))
+func initializeRepository(sc source.Canonical, cs config.Source) (notification.Repository, error) {
+	switch sc {
+	case source.Github:
+		return github.NewNotificationRepository(cs.Token), nil
+	case source.Gitlab:
+		return gitlab.NewNotificationRepository(cs.Token), nil
+	case source.Trello:
+		return trello.NewNotificationRepository(cs.ApiKey, cs.Token), nil
+	case source.Zeplin:
+		return zeplin.NewNotificationRepository(cs.Token), nil
+	default:
+		return nil, fmt.Errorf("not implemented source %q", sc)
+	}
 }

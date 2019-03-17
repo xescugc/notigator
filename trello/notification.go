@@ -12,13 +12,11 @@ import (
 
 type notificationRepository struct {
 	client *trello.Client
-	member string
 }
 
-func NewNotificationRepository(ctx context.Context, apiKey, token, member string) notification.Repository {
+func NewNotificationRepository(apiKey, token string) notification.Repository {
 	return &notificationRepository{
 		client: trello.NewClient(apiKey, token),
-		member: member,
 	}
 }
 
