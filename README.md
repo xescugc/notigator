@@ -2,6 +2,8 @@
 
 This library provides a way to aggregate notifications in one sigel view
 
+![notigator](https://github.com/xescugc/notigator/blob/master/docs/screenshot.png)
+
 ## How to install
 
 It uses GO +1.11
