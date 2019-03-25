@@ -99,9 +99,11 @@ func buildURL(n *github.Notification) (*url.URL, error) {
 		base = fmt.Sprintf("%s/pull/%s", base, issueID)
 	case "Commit":
 		base = fmt.Sprintf("%s/commit/%s", base, issueID)
+	case "Release":
+		base = fmt.Sprintf("%s/releases/tag/%s", base, *n.Subject.Title)
 	}
 
-	if n.Subject.LatestCommentURL != nil {
+	if n.Subject.LatestCommentURL != nil && *n.Subject.Type != "Release" {
 		commentURLSplit := strings.Split(*n.Subject.LatestCommentURL, "/")
 		commentID := commentURLSplit[len(commentURLSplit)-1]
 		switch *n.Reason {
