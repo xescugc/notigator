@@ -1,7 +1,8 @@
 $(function(){
   // alertTimeout it's the default timeout
-  // to show the alerts, 2s
-  var alertTimeout = 2000
+  // to show the alerts, 5s
+  var alertTimeout = 5000
+  var currentTimout
 
   // buildCustomEvent it's a function to prepend
   // all the custom events so they are separated
@@ -13,7 +14,7 @@ $(function(){
   // catchError it's a global function that will call showAlert
   // with the response error
   var catchError = function(collection, response, options) {
-    showAlert(response.responseJSON.error)
+    showAlert(response.responseJSON.error, "error")
   }
 
 
@@ -83,6 +84,7 @@ $(function(){
   var Alert = Backbone.Model.extend({
     attributes: {
       "text": "",
+      "type": "",
     }
   })
 
@@ -152,7 +154,11 @@ $(function(){
   });
 
   var AlertView = Backbone.View.extend({
-    className: 'alert alert-danger',
+    attributes: function() {
+      return {
+        class: 'alert alert-' + this.model.get("type"),
+      };
+    },
     template: _.template($('#alert-view-tmpl').html()),
     model: Alert,
     render: function() {
@@ -163,10 +169,13 @@ $(function(){
 
   // showAlert prints an alert with the
   // given text
-  var showAlert = function(text) {
-    var a = new AlertView({model: new Alert({text: text})});
+  var showAlert = function(text, type) {
+    var a = new AlertView({model: new Alert({text: text, type: type})});
     $("#alert").html(a.render().el);
-    setTimeout(function() {
+    if (curretnTimout) {
+      clearTimeout(currentTimout)
+    }
+    currentTimout = setTimeout(function() {
       $("#alert").html("");
     }, alertTimeout);
   }
@@ -198,6 +207,9 @@ $(function(){
       sources.each(function(src) {
         that.listenTo(src.notifications, 'sync', that.renderNotifications);
         that.listenTo(src.notifications, 'reset', that.resetNotifications);
+
+        that.listenTo(src.notifications, 'request', that.startRefreshNotification);
+        that.listenTo(src.notifications, 'sync', that.finishRefreshNotification);
       })
 
       // I could just call the this.fetchNotifications but I feel that having
@@ -225,6 +237,13 @@ $(function(){
 
     fetchNotifications: function() {
       refreshCurrentNotifications();
+    },
+
+    startRefreshNotification: function() {
+      showAlert("Refreshing ...", "warning");
+    },
+    finishRefreshNotification: function() {
+      showAlert("Refreshed!", "success");
     },
   });
 

@@ -9,13 +9,17 @@
     <title>Notigator</title>
   </head>
   <body>
+    <div class="sticky-top">
+      <div style="position: absolute; top: 10px; right: 10px;">
+        <div id="alert"></div>
+      </div>
+    </div>
     <div class="container">
       <nav class="navbar navbar-light bg-light">
         <a class="navbar-brand" href="#github">Notigator</a>
       </nav>
       </br>
       </br>
-      <div id="alert"></div>
       <div class="row" id="main">
         <div class="col-3" id="sidebar">
           <div class='list-group' id='list-sources'></div>
@@ -27,18 +31,18 @@
     </div>
 
     <script type="text/template" id="notifications-view-tmpl">
+      <div class="row" id="main">
+        <div class="col-11" id="sidebar">
+          <h2><%= notifications.source.get("name") %> (<%= notifications.size() %>)</h2>
+        </div>
+        <div class="col-1" id="content">
+          <button type="button" class="btn btn-info" alt="refresh" id="refresh">R</button>
+        </div>
+      </div>
+      </br>
       <% if (notifications.size() == 0) { %>
         <center>No notifications!</center>
       <% } else { %>
-        <div class="row" id="main">
-          <div class="col-11" id="sidebar">
-            <h2><%= notifications.source.get("name") %> (<%= notifications.size() %>)</h2>
-          </div>
-          <div class="col-1" id="content">
-            <button type="button" class="btn btn-info" alt="refresh" id="refresh">R</button>
-          </div>
-        </div>
-        </br>
         <% _.each(notifications.groupByScopes(), function(group, idx) { %>
           <li id="<%= idx %>" class="scope-title list-group-item list-group-item-secondary">
             <div class="row">
