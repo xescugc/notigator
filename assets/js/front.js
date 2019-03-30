@@ -37,6 +37,7 @@ $(function(){
 
     initialize: function(models, options) {
       this.url = options.url
+      this.source = options.source
     },
 
     groupByScopes: function() {
@@ -44,7 +45,7 @@ $(function(){
         return e.get("scope");
       });
 
-      var res = []
+      var res = [];
 
       _.each(gps, function(notifications, scope) {
         var ne =_.sortBy(notifications, function(event) {
@@ -73,7 +74,8 @@ $(function(){
     },
     initialize: function(options) {
       this.notifications = new NotificationList(null, {
-        url: this.url() + "/" + this.get("canonical") + "/notifications"
+        url: this.url() + "/" + this.get("canonical") + "/notifications",
+        source: this,
       })
     },
   });
@@ -102,6 +104,7 @@ $(function(){
     template: _.template($('#notifications-view-tmpl').html()),
     events: {
       "click .scope-title": "toggleNotifications",
+      "click button#refresh": "refreshNotifications",
     },
     render: function() {
       this.$el.html(this.template({ notifications: this.collection }));
@@ -109,6 +112,9 @@ $(function(){
     },
     toggleNotifications: function(e) {
       this.$el.find("#notifications-"+e.currentTarget.id).toggle("fast")
+    },
+    refreshNotifications: function(e) {
+      refreshCurrentNotifications()
     },
   })
 
@@ -165,6 +171,10 @@ $(function(){
     }, alertTimeout);
   }
 
+  var refreshCurrentNotifications = function() {
+    Sources.active.notifications.fetch({reset: true, error: catchError})
+  }
+
   var Sources = new SourceList();
 
   var AppView = Backbone.View.extend({
@@ -214,7 +224,7 @@ $(function(){
     },
 
     fetchNotifications: function() {
-      Sources.active.notifications.fetch({reset: true, error: catchError});
+      refreshCurrentNotifications();
     },
   });
 

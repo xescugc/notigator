@@ -30,6 +30,15 @@
       <% if (notifications.size() == 0) { %>
         <center>No notifications!</center>
       <% } else { %>
+        <div class="row" id="main">
+          <div class="col-11" id="sidebar">
+            <h2><%= notifications.source.get("name") %> (<%= notifications.size() %>)</h2>
+          </div>
+          <div class="col-1" id="content">
+            <button type="button" class="btn btn-info" alt="refresh" id="refresh">R</button>
+          </div>
+        </div>
+        </br>
         <% _.each(notifications.groupByScopes(), function(group, idx) { %>
           <li id="<%= idx %>" class="scope-title list-group-item list-group-item-secondary">
             <div class="row">
