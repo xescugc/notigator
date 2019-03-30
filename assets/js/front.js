@@ -2,6 +2,7 @@ $(function(){
   // alertTimeout it's the default timeout
   // to show the alerts, 5s
   var alertTimeout = 5000
+  var currentTimout
 
   // buildCustomEvent it's a function to prepend
   // all the custom events so they are separated
@@ -171,7 +172,10 @@ $(function(){
   var showAlert = function(text, type) {
     var a = new AlertView({model: new Alert({text: text, type: type})});
     $("#alert").html(a.render().el);
-    setTimeout(function() {
+    if (curretnTimout) {
+      clearTimeout(currentTimout)
+    }
+    currentTimout = setTimeout(function() {
       $("#alert").html("");
     }, alertTimeout);
   }
