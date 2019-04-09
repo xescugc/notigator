@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 	"net/url"
-	"time"
 
 	"github.com/adlio/trello"
 	"github.com/xescugc/notigator/notification"
@@ -22,47 +21,11 @@ func NewNotificationRepository(apiKey, token string) notification.Repository {
 	}
 }
 
-// Notification representation of a Trello notification
-type Notification struct {
-	ID              string           `json:"id"`
-	IDAction        string           `json:"idAction"`
-	Unread          bool             `json:"unread"`
-	Type            string           `json:"type"`
-	IDMemberCreator string           `json:"idMemberCreator"`
-	Date            time.Time        `json:"date"`
-	DateRead        time.Time        `json:"dataRead"`
-	Data            NotificationData `json:"data,omitempty"`
-	MemberCreator   *trello.Member   `json:"memberCreator,omitempty"`
-}
-
-// NotificationData the Data of the Notification
-type NotificationData struct {
-	Text  string                 `json:"text"`
-	Card  *NotificationDataCard  `json:"card,omitempty"`
-	Board *NotificationDataBoard `json:"board,omitempty"`
-}
-
-// NotificationDataBoard the Board Data of a Notification
-type NotificationDataBoard struct {
-	ID        string `json:"id"`
-	ShortLink string `json:"shortLink"`
-	Name      string `json:"name"`
-}
-
-// NotificationDataCard the Card Data of a Notification
-type NotificationDataCard struct {
-	ID        string `json:"id"`
-	IDShort   int    `json:"idShort"`
-	Name      string `json:"name"`
-	ShortLink string `json:"shortLink"`
-}
-
 func (n *notificationRepository) Filter(ctx context.Context) ([]*notification.Notification, error) {
-	nots := make([]Notification, 0)
-	err := n.client.Get("members/me/notifications", trello.Arguments(map[string]string{
+	nots, err := n.client.GetMyNotifications(trello.Arguments(map[string]string{
 		"limit":       "1000",
 		"read_filter": "unread",
-	}), &nots)
+	}))
 	if err != nil {
 		return nil, err
 	}

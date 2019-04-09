@@ -172,7 +172,7 @@ $(function(){
   var showAlert = function(text, type) {
     var a = new AlertView({model: new Alert({text: text, type: type})});
     $("#alert").html(a.render().el);
-    if (curretnTimout) {
+    if (currentTimout) {
       clearTimeout(currentTimout)
     }
     currentTimout = setTimeout(function() {
