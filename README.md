@@ -33,7 +33,7 @@ $> notigator -h
 If you want to use it from docker this is the "default" example:
 
 ```
-$> docker run --rm -p 3000:3000 -v "${HOME}/.notigator.json":/app/.notigator.json xescugc/notigator serve --config /app/.notigator.json
+$> docker run --rm -d -p 3000:3000 -v "${HOME}/.notigator.json":/app/.notigator.json xescugc/notigator:1.0.0 serve --config /app/.notigator.json
 ```
 
 ## Configure
