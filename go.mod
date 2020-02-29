@@ -1,5 +1,7 @@
 module github.com/xescugc/notigator
 
+go 1.14
+
 require (
 	github.com/BurntSushi/toml v0.3.1 // indirect
 	github.com/adlio/trello v0.0.0-20190408222002-5b31feeddcaa
