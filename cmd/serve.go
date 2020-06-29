@@ -99,7 +99,11 @@ func initializeRepository(sc source.Canonical, cs config.Source) (notification.R
 	case source.Github:
 		return github.NewNotificationRepository(cs.Token), nil
 	case source.Gitlab:
-		return gitlab.NewNotificationRepository(cs.Token), nil
+		r, err := gitlab.NewNotificationRepository(cs.Token)
+		if err != nil {
+			return nil, fmt.Errorf("failed to initialize GitLab source: %w", err)
+		}
+		return r, nil
 	case source.Trello:
 		return trello.NewNotificationRepository(cs.APIKey, cs.Token), nil
 	case source.Zeplin:

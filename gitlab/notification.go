@@ -16,10 +16,14 @@ type notificationRepository struct {
 
 // NewNotificationRepository returns the implementation of
 // a notification.Repository for a gitlab Source
-func NewNotificationRepository(token string) notification.Repository {
-	return &notificationRepository{
-		client: gitlab.NewClient(nil, token),
+func NewNotificationRepository(token string) (notification.Repository, error) {
+	cli, err := gitlab.NewClient(token)
+	if err != nil {
+		return nil, fmt.Errorf("could not initialize GitLab client: %w", err)
 	}
+	return &notificationRepository{
+		client: cli,
+	}, nil
 }
 
 func (n *notificationRepository) Filter(ctx context.Context) ([]*notification.Notification, error) {
