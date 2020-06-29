@@ -64,6 +64,8 @@ func (n *notificationRepository) Filter(ctx context.Context) ([]*notification.No
 
 		if len(nnots) == 0 {
 			finishPagination = true
+		} else if len(nnots) == 1 && *lastNotification.ID == *nnots[0].ID {
+			finishPagination = true
 		} else {
 			lastNotification = nnots[len(nnots)-1]
 			nots = append(nots, nnots...)
