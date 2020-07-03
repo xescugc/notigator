@@ -49,6 +49,8 @@ func (n *notificationRepository) Filter(ctx context.Context) ([]*notification.No
 
 		// lastNotification the last notification fetched
 		lastNotification *github.Notification = nots[len(nots)-1]
+
+		notsMap = make(map[string]struct{})
 	)
 
 	// While !finishPagination we'll fetch the notifications after the
@@ -62,13 +64,23 @@ func (n *notificationRepository) Filter(ctx context.Context) ([]*notification.No
 			return nil, fmt.Errorf("could not fetch the list of notifications: %s", err)
 		}
 
+		lenBefore := len(nots)
 		if len(nnots) == 0 {
 			finishPagination = true
-		} else if len(nnots) == 1 && *lastNotification.ID == *nnots[0].ID {
-			finishPagination = true
 		} else {
+			for _, n := range nnots {
+				if _, ok := notsMap[*n.ID]; !ok {
+					nots = append(nots, n)
+					notsMap[*n.ID] = struct{}{}
+				}
+			}
 			lastNotification = nnots[len(nnots)-1]
-			nots = append(nots, nnots...)
+		}
+
+		// If it did not change then we can flag it as
+		// ready to finish
+		if lenBefore == len(nots) {
+			finishPagination = true
 		}
 	}
 
