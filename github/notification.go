@@ -72,6 +72,12 @@ func (n *notificationRepository) Filter(ctx context.Context) ([]*notification.No
 				if _, ok := notsMap[*n.ID]; !ok {
 					nots = append(nots, n)
 					notsMap[*n.ID] = struct{}{}
+				} else {
+					// If one of the notifications is
+					// already on the notsMap then
+					// we can finishPagination
+					finishPagination = true
+					continue
 				}
 			}
 			lastNotification = nnots[len(nnots)-1]
