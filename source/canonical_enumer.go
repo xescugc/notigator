@@ -10,6 +10,8 @@ const _CanonicalName = "githubgitlabtrellozeplin"
 
 var _CanonicalIndex = [...]uint8{0, 6, 12, 18, 24}
 
+const _CanonicalLowerName = "githubgitlabtrellozeplin"
+
 func (i Canonical) String() string {
 	if i < 0 || i >= Canonical(len(_CanonicalIndex)-1) {
 		return fmt.Sprintf("Canonical(%d)", i)
@@ -17,13 +19,34 @@ func (i Canonical) String() string {
 	return _CanonicalName[_CanonicalIndex[i]:_CanonicalIndex[i+1]]
 }
 
-var _CanonicalValues = []Canonical{0, 1, 2, 3}
+// An "invalid array index" compiler error signifies that the constant values have changed.
+// Re-run the stringer command to generate them again.
+func _CanonicalNoOp() {
+	var x [1]struct{}
+	_ = x[Github-(0)]
+	_ = x[Gitlab-(1)]
+	_ = x[Trello-(2)]
+	_ = x[Zeplin-(3)]
+}
+
+var _CanonicalValues = []Canonical{Github, Gitlab, Trello, Zeplin}
 
 var _CanonicalNameToValueMap = map[string]Canonical{
-	_CanonicalName[0:6]:   0,
-	_CanonicalName[6:12]:  1,
-	_CanonicalName[12:18]: 2,
-	_CanonicalName[18:24]: 3,
+	_CanonicalName[0:6]:        Github,
+	_CanonicalLowerName[0:6]:   Github,
+	_CanonicalName[6:12]:       Gitlab,
+	_CanonicalLowerName[6:12]:  Gitlab,
+	_CanonicalName[12:18]:      Trello,
+	_CanonicalLowerName[12:18]: Trello,
+	_CanonicalName[18:24]:      Zeplin,
+	_CanonicalLowerName[18:24]: Zeplin,
+}
+
+var _CanonicalNames = []string{
+	_CanonicalName[0:6],
+	_CanonicalName[6:12],
+	_CanonicalName[12:18],
+	_CanonicalName[18:24],
 }
 
 // CanonicalString retrieves an enum value from the enum constants string name.
@@ -38,6 +61,13 @@ func CanonicalString(s string) (Canonical, error) {
 // CanonicalValues returns all values of the enum
 func CanonicalValues() []Canonical {
 	return _CanonicalValues
+}
+
+// CanonicalStrings returns a slice of all String values of the enum
+func CanonicalStrings() []string {
+	strs := make([]string, len(_CanonicalNames))
+	copy(strs, _CanonicalNames)
+	return strs
 }
 
 // IsACanonical returns "true" if the value is listed in the enum definition. "false" otherwise

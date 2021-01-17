@@ -2,21 +2,13 @@ $(function(){
   // alertTimeout it's the default timeout
   // to show the alerts, 5s
   var alertTimeout = 5000
-  var currentTimout
-
-  // buildCustomEvent it's a function to prepend
-  // all the custom events so they are separated
-  // from the normal BB flow
-  var buildCustomEvent = function(event) {
-    return "notigator:"+event
-  }
+  var currentTimout, currentAlert;
 
   // catchError it's a global function that will call showAlert
   // with the response error
   var catchError = function(collection, response, options) {
-    showAlert(response.responseJSON.error, "error")
+    showAlert(response.responseJSON.error, "danger")
   }
-
 
   var Notification = Backbone.Model.extend({
     attributes: {
@@ -27,6 +19,7 @@ $(function(){
       "updated_at": "",
     },
   });
+
   var NotificationList = Backbone.Collection.extend({
     model: Notification,
 
@@ -36,9 +29,8 @@ $(function(){
       return response.data;
     },
 
-    initialize: function(models, options) {
-      this.url = options.url
-      this.source = options.source
+    url: function() {
+      return this.source.url() + "/notifications"
     },
 
     groupByScopes: function() {
@@ -67,17 +59,16 @@ $(function(){
   });
 
   var Source = Backbone.Model.extend({
-    id: "canonical",
+    idAttribute: "canonical",
     attributes: {
       "canonical": "",
       "name": "",
       "active": false,
     },
+    urlRoot: "/api/sources",
     initialize: function(options) {
-      this.notifications = new NotificationList(null, {
-        url: this.url() + "/" + this.get("canonical") + "/notifications",
-        source: this,
-      })
+      this.notifications = new NotificationList();
+      this.notifications.source = this;
     },
   });
 
@@ -93,12 +84,18 @@ $(function(){
     url: '/api/sources',
 
     initialize: function() {
-      // Initialize the attribute
       this.active = undefined;
     },
 
     parse: function(response, options) {
       return response.data;
+    },
+
+    toggleActive: function(current) {
+      if (this.active != undefined) this.active.set('active', false);
+
+      this.active = this.get(current);
+      this.active.set('active', true);
     },
   });
 
@@ -108,6 +105,15 @@ $(function(){
       "click .scope-title": "toggleNotifications",
       "click button#refresh": "refreshNotifications",
     },
+    initialize: function() {
+      this.listenTo(this.collection, "reset", this.render);
+      showAlert("Refreshing ...", "warning");
+      this.collection.fetch({
+        reset: true,
+        success: function(){showAlert("Refreshed!", "success")},
+        error: catchError,
+      });
+    },
     render: function() {
       this.$el.html(this.template({ notifications: this.collection }));
       return this;
@@ -116,7 +122,12 @@ $(function(){
       this.$el.find("#notifications-"+e.currentTarget.id).toggle("fast")
     },
     refreshNotifications: function(e) {
-      refreshCurrentNotifications()
+      showAlert("Refreshing ...", "warning");
+      this.collection.fetch({
+        reset: true,
+        success: function(){showAlert("Refreshed!", "success")},
+        error: catchError,
+      })
     },
   })
 
@@ -125,23 +136,19 @@ $(function(){
     template: _.template($('#source-view-tmpl').html()),
     className: 'list-group-item list-group-item-action',
     events: {
-      "click": "changeActive",
+      "click": "goToSource",
     },
     initialize: function() {
       this.listenTo(this.model, "change", this.render);
     },
     attributes: function(){
       return {
-        'href': '#' + this.model.get('canonical'),
+        'href': this.model.get('canonical'),
       };
     },
-    changeActive: function(e) {
-      if (!this.model.get("active")) {
-        this.model.set('active',true);
-        Sources.active.set('active', false);
-        Sources.active = this.model;
-        Sources.trigger(buildCustomEvent('change:active'));
-      };
+    goToSource: function(e) {
+      e.preventDefault();
+      router.navigate("/"+this.model.get("canonical"), {trigger: true})
     },
     render: function() {
       if (this.model.get('active')) {
@@ -170,82 +177,93 @@ $(function(){
   // showAlert prints an alert with the
   // given text
   var showAlert = function(text, type) {
+    if (currentAlert) currentAlert.remove();
     var a = new AlertView({model: new Alert({text: text, type: type})});
+    currentAlert = a;
     $("#alert").html(a.render().el);
     if (currentTimout) {
       clearTimeout(currentTimout)
     }
     currentTimout = setTimeout(function() {
-      $("#alert").html("");
+      currentAlert.remove();
     }, alertTimeout);
-  }
-
-  var refreshCurrentNotifications = function() {
-    Sources.active.notifications.fetch({reset: true, error: catchError})
   }
 
   var Sources = new SourceList();
 
   var AppView = Backbone.View.extend({
-    el: $("#main"),
-
     initialize: function() {
-      this.listenTo(Sources, 'sync', this.renderSources);
-      this.listenTo(Sources, buildCustomEvent('change:active'), this.fetchNotifications);
+      this.$content = this.$("#content");
+      this.$sidebar = this.$("#sidebar");
+      this.sidebars = []
 
-      Sources.fetch({success: this.setDefaultSource.bind(this), error: catchError});
+      this.listenTo(Sources, "sync", this.renderSidebar)
     },
 
-    // setDefaultSource sets the sources collection
-    // 'active' canonical to the actual model
-    // withing it
-    setDefaultSource: function(sources, response, options) {
+    setContent: function(view) {
+      var content = this.content;
+      if (content) content.remove();
+      content = this.content = view;
+      this.$content.html(content.render().el);
+    },
+
+    renderSidebar: function() {
       var that = this
-      var src = sources.first()
-      src.set('active', true);
-      sources.active = src;
-      sources.each(function(src) {
-        that.listenTo(src.notifications, 'sync', that.renderNotifications);
-        that.listenTo(src.notifications, 'reset', that.resetNotifications);
-
-        that.listenTo(src.notifications, 'request', that.startRefreshNotification);
-        that.listenTo(src.notifications, 'sync', that.finishRefreshNotification);
-      })
-
-      // I could just call the this.fetchNotifications but I feel that having
-      // the actual event would help to understand the flow
-      Sources.trigger(buildCustomEvent('change:active'));
-    },
-
-    renderNotifications: function() {
-      var notifications = new NotificationsView({ collection: Sources.active.notifications });
-      this.$("#list-notifications").html(notifications.render().el);
-      return this;
-    },
-
-    renderSources: function() {
+      var sidebars = that.sidebars
+      if (sidebars.length != 0) _.each(sidebars, function(sv) { sv.remove() })
+      that.sidebars = [];
       Sources.each(function(source) {
-        var s = new SourceView({model: source});
-        this.$("#list-sources").append(s.render().el);
+        var sv = new SourceView({model: source});
+        that.sidebars.push(sv)
+        that.$sidebar.append(sv.render().el);
       });
-      return this;
-    },
-
-    resetNotifications: function() {
-      this.$("#list-notifications").html("");
-    },
-
-    fetchNotifications: function() {
-      refreshCurrentNotifications();
-    },
-
-    startRefreshNotification: function() {
-      showAlert("Refreshing ...", "warning");
-    },
-    finishRefreshNotification: function() {
-      showAlert("Refreshed!", "success");
     },
   });
 
-  var App = new AppView;
+
+  var Router = Backbone.Router.extend({
+    routes: {
+      ":sourceCan": "sourceRender",
+      "*all":       "renderHome",
+    },
+    initialize: function() {
+      this.layout = new AppView({
+        el: 'body',
+      });
+    },
+
+    sourceRender: function(sourceCan) {
+      var s = Sources.get(sourceCan);
+      Sources.toggleActive(sourceCan);
+
+      var nv = new NotificationsView({collection: s.notifications});
+      this.layout.setContent(nv)
+    },
+
+    renderHome: function() {
+      var src = Sources.first()
+      router.navigate("/"+src.get("canonical"), {trigger: true})
+    },
+  });
+
+
+  var router;
+
+  // As we need the Sources to be fetched before doing anything we
+  // initialize the router once they are fetched
+  Sources.fetch({
+    reset: true,
+    success: function() {
+      router = new Router();
+
+      Backbone.ajax = function(request) {
+        request = _({ contentType: 'application/json' }).defaults(request);
+        return Backbone.$.ajax.call(Backbone.$, request);
+      };
+
+      Backbone.history.start({pushState: true});
+    },
+    error: catchError,
+  });
+
 })
