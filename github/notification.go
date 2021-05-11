@@ -7,7 +7,7 @@ import (
 
 	"net/url"
 
-	"github.com/xescugc/go-github/github"
+	"github.com/google/go-github/v33/github"
 	"github.com/xescugc/notigator/notification"
 	"golang.org/x/oauth2"
 )
@@ -110,7 +110,13 @@ func (n *notificationRepository) Filter(ctx context.Context) ([]*notification.No
 
 func buildURL(n *github.Notification) (*url.URL, error) {
 	base := *n.Repository.HTMLURL
-	issueURLSplit := strings.Split(*n.Subject.URL, "/")
+	var u string
+	if n.Subject.URL == nil {
+		u = *n.URL
+	} else {
+		u = *n.Subject.URL
+	}
+	issueURLSplit := strings.Split(u, "/")
 	issueID := issueURLSplit[len(issueURLSplit)-1]
 	switch *n.Subject.Type {
 	case "Issue":
@@ -121,6 +127,8 @@ func buildURL(n *github.Notification) (*url.URL, error) {
 		base = fmt.Sprintf("%s/commit/%s", base, issueID)
 	case "Release":
 		base = fmt.Sprintf("%s/releases/tag/%s", base, *n.Subject.Title)
+	case "Discussion":
+		base = fmt.Sprintf("%s/discussions", base)
 	}
 
 	if n.Subject.LatestCommentURL != nil && *n.Subject.Type != "Release" {
